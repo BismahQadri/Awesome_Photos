@@ -10,6 +10,7 @@ import com.bumptech.glide.load.DataSource
 import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.bumptech.glide.load.engine.GlideException
 import com.bumptech.glide.request.RequestListener
+import com.bumptech.glide.request.RequestOptions
 import com.bumptech.glide.request.target.Target
 import com.example.awesomephotos.R
 import com.example.awesomephotos.databinding.ItemImageBinding
@@ -18,7 +19,8 @@ import com.example.awesomephotos.utilities.GlideApp
 
 class ImagesAdapter(
     private val items: List<Images>, private val listener: (Int) -> Unit,
-    private val longListener: (Int) -> Boolean
+    private val longListener: (Int) -> Boolean,
+    private val thumbnailListener : (Int) -> Unit
 ) :
     RecyclerView.Adapter<ImagesAdapter.ViewHolder>() {
     override fun onCreateViewHolder(parent: ViewGroup, p1: Int): ViewHolder {
@@ -32,7 +34,8 @@ class ImagesAdapter(
     }
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-        holder.bindTo(items[position], { listener(position) }, { longListener(position) })
+        holder.bindTo(items[position], { listener(position) }, { longListener(position) },
+            { thumbnailListener(position) })
     }
 
     override fun getItemCount() = items.size
@@ -43,7 +46,8 @@ class ImagesAdapter(
         fun bindTo(
             item: Images,
             listener: View.OnClickListener,
-            longListener: View.OnLongClickListener
+            longListener: View.OnLongClickListener,
+            thumbListener: View.OnClickListener,
         ) {
             view.root.setOnClickListener(listener)
             view.root.setOnLongClickListener(longListener)
@@ -52,7 +56,19 @@ class ImagesAdapter(
                 view.tvTooltip.visibility = View.VISIBLE
 
             } else view.tvTooltip.visibility = View.GONE
-            view.tvTooltip.text = item.alt_description + " ; Author: " + item.user.username
+            view.tvTooltip.text = item.alt_description
+            view.tvThumbnail.text = item.user.name
+
+            view.tvThumbnail.setOnClickListener(thumbListener)
+            view.ivProfile.setOnClickListener(thumbListener)
+
+            GlideApp.with(itemView.context)
+                .load(item.user.profile_image.medium
+                )
+                .error(R.drawable.ic_dummy)
+                .placeholder(R.drawable.ic_dummy)
+                .diskCacheStrategy(DiskCacheStrategy.DATA)
+                .into(view.ivProfile)
             GlideApp.with(itemView.context)
                 .load(item.urls.small)
                 .diskCacheStrategy(DiskCacheStrategy.DATA)

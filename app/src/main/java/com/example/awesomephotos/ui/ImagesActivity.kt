@@ -97,6 +97,12 @@ class ImagesActivity : AppCompatActivity() {
             }
 
             return@ImagesAdapter true
+        }, {
+            val viewIntent = Intent(
+                "android.intent.action.VIEW",
+                Uri.parse(data[it].user.portfolio_url)
+            )
+            startActivity(viewIntent)
         })
         binding.recyclerView.adapter = adapter
     }
